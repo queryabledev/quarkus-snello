@@ -1,0 +1,68 @@
+name: Publish to Maven Central
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java and Maven Central credentials
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+          server-id: central
+          server-username: NEXUS_USERNAME
+          server-password: NEXUS_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Validate release version
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release tags must use stable semantic versions such as 1.0.0 or v1.0.0."
+            exit 1
+          fi
+          project_version="$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)"
+          if [[ "$project_version" != "$version" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match project version $project_version."
+            exit 1
+          fi
+
+      - name: Validate Maven Central credentials
+        shell: bash
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          if [[ -z "$NEXUS_USERNAME" || -z "$NEXUS_PASSWORD" || -z "$GPG_PRIVATE_KEY" || -z "$MAVEN_GPG_PASSPHRASE" ]]; then
+            echo "Set NEXUS_USERNAME, NEXUS_PASSWORD, GPG_PRIVATE_KEY, and GPG_PASSPHRASE repository secrets."
+            exit 1
+          fi
+
+      - name: Build and test extension
+        run: mvn -B -ntp -DskipITs=false clean install
+
+      - name: Publish signed artifacts to Maven Central
+        run: mvn -B -ntp -Prelease -DperformRelease=true -DskipTests deploy
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

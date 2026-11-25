@@ -1,0 +1,52 @@
+name: Verify Maven Central release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Stable version to verify
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify published artifacts
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release version: $VERSION"
+            exit 1
+          fi
+
+          base="https://repo.maven.apache.org/maven2/dev/queryable"
+          artifacts=(
+            "quarkus-snello-parent/$VERSION/quarkus-snello-parent-$VERSION.pom"
+            "quarkus-snello/$VERSION/quarkus-snello-$VERSION.pom"
+            "quarkus-snello/$VERSION/quarkus-snello-$VERSION.jar"
+            "quarkus-snello/$VERSION/quarkus-snello-$VERSION-sources.jar"
+            "quarkus-snello/$VERSION/quarkus-snello-$VERSION-javadoc.jar"
+            "quarkus-snello-deployment/$VERSION/quarkus-snello-deployment-$VERSION.pom"
+            "quarkus-snello-deployment/$VERSION/quarkus-snello-deployment-$VERSION.jar"
+            "quarkus-snello-deployment/$VERSION/quarkus-snello-deployment-$VERSION-sources.jar"
+            "quarkus-snello-deployment/$VERSION/quarkus-snello-deployment-$VERSION-javadoc.jar"
+          )
+
+          missing=0
+          for artifact in "${artifacts[@]}"; do
+            url="$base/$artifact"
+            if curl -sfI "$url" > /dev/null; then
+              echo "OK      $artifact"
+            else
+              echo "MISSING $artifact"
+              missing=1
+            fi
+          done
+          exit $missing

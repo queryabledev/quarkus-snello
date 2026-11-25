@@ -82,6 +82,18 @@ mvn verify -DskipITs=false                  # also run the suite against the pac
 mvn verify -Dnative                         # also build the native image and test it (requires GraalVM or a container runtime)
 ```
 
+### Releasing
+
+Pushing a stable semver tag (`1.2.3` or `v1.2.3`) matching the project version
+triggers the [release workflow](.github/workflows/release.yml), which builds, tests,
+signs and publishes `quarkus-snello-parent`, `quarkus-snello` and
+`quarkus-snello-deployment` to Maven Central through the Sonatype Central Portal.
+
+Required repository secrets: `NEXUS_USERNAME` / `NEXUS_PASSWORD` (Central Portal
+token), `GPG_PRIVATE_KEY` / `GPG_PASSPHRASE` (signing key). The
+[verify-release workflow](.github/workflows/verify-release.yml) can be dispatched
+manually to check that all artifacts are reachable on Central.
+
 ## How entities are exposed
 
 Each concrete `@Entity` is exposed at `<base-path>/<table name>`:
