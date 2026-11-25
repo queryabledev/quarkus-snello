@@ -84,7 +84,11 @@ public class Article {
 - The path segment is the `@Table(name = ...)` value; without `@Table` it falls back to the
   lowercase entity name.
 - Annotate an entity with `@SnelloExclude` to keep it out of the REST exposure.
-- The base path is configurable with `quarkus.snello.base-path` (default `/api`).
+- The base path is configurable with `quarkus.snello.base-path` (default `/api`);
+  setting it to `/` exposes the entities directly at the root (`/articles`). The
+  standard Quarkus `quarkus.http.root-path` (default `/`) is applied on top of it,
+  as for every HTTP endpoint: with `quarkus.http.root-path=/myapp` the resource
+  becomes `/myapp/api/articles`.
 - `quarkus.snello.default-limit` (default `0` = unlimited) caps plain listings when
   `_limit` is absent; an explicit `_limit` always wins, including `_limit=0` for an
   unlimited result.

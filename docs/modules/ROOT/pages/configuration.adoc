@@ -10,8 +10,17 @@
 |string
 |`/api`
 |Base path prepended to every generated resource path. The table name of each
-entity is appended to it, for example `/api/articles`.
+entity is appended to it, for example `/api/articles`. Set it to `/` to expose
+the entities directly at the root (`/articles`).
 |===
+
+[NOTE]
+====
+The standard Quarkus `quarkus.http.root-path` (default `/`) is applied on top of
+the snello base path, as for every HTTP endpoint: with
+`quarkus.http.root-path=/myapp` an `Article` entity is served at
+`/myapp/api/articles`.
+====
 
 == Runtime configuration
 
