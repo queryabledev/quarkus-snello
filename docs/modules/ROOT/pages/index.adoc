@@ -1,8 +1,18 @@
 = Quarkus Snello
 
-Snello automatically exposes every JPA `@Entity` as a REST CRUD resource with a
-rich suffix-based filter language, without requiring any annotation on the
-entities.
+Quarkus Snello brings the
+link:https://github.com/snello-cms/snello-api[Snello] query language to standard
+Quarkus + Hibernate ORM applications: every JPA `@Entity` is automatically
+exposed as a REST CRUD resource with a rich suffix-based filter language,
+without requiring any annotation on the entities.
+
+Unlike Snello API — the metadata-driven headless CMS where tables are created
+and changed at runtime — Quarkus Snello is its *compile-time counterpart*: the
+exposed tables are the JPA entities compiled into the application, so the whole
+API surface is decided before going to production. The system does not extend at
+runtime: tables that were not pre-configured as entities cannot be queried
+(requests to non-mapped paths return `404`), and filterable fields are
+whitelisted from the JPA metamodel.
 
 Standard CRUD, counting, OpenAPI and transactions remain owned by the official
 `quarkus-hibernate-orm-rest-data-panache` extension; snello contributes the
