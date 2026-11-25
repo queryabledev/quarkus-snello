@@ -1,0 +1,76 @@
+= REST lifecycle
+
+Implement `SnelloRsListener<T>` as a CDI bean to observe or validate the
+generated endpoints. The entity type is inferred from the generic parameter;
+override `entityType()` when it cannot be resolved.
+
+== Validation
+
+Before-callbacks run before the operation and can reject it by throwing a REST
+exception, for example `jakarta.ws.rs.BadRequestException`:
+
+[source,java]
+----
+@ApplicationScoped
+public class ArticleListener implements SnelloRsListener<Article> {
+
+    @Override
+    public void onBefore(SnelloEvent<Article> event) {
+        if (event.operation() == SnelloOperation.CREATE
+                || event.operation() == SnelloOperation.UPDATE) {
+            Article article = event.entity().orElseThrow();
+            if (article.title == null || article.title.isBlank()) {
+                throw new BadRequestException("Title is required");
+            }
+        }
+    }
+}
+----
+
+== After-commit callbacks
+
+After-callbacks run once the enclosing transaction has committed, which makes
+them safe for audit trails, notifications and cache invalidation:
+
+[source,java]
+----
+@PostPersist
+void created(Article article) {
+    audit.record("created:" + article.id);
+}
+
+@PostDelete
+void deleted(SnelloEvent<Article> event) {
+    audit.record("deleted:" + event.id().orElseThrow());
+}
+----
+
+== Annotated callback methods
+
+Besides `onBefore`/`onAfter`, the listener can declare annotated callback
+methods for specific operations:
+
+[cols="1,1,1"]
+|===
+|Operation |Before |After
+
+|Fetch by id |`@PreFetch` |`@PostFetch`
+|Collection listing |`@PreList` |`@PostList`
+|Create |`@PrePersist` |`@PostPersist`
+|Update |`@PreUpdate` |`@PostUpdate`
+|Delete |`@PreDelete` |`@PostDelete`
+|===
+
+A callback method declares no parameters or a single one, which can be the
+`SnelloEvent`, the entity, the result `List` or the entity id.
+
+== Event payload
+
+`SnelloEvent<T>` is a record carrying:
+
+* `entityType()` — the entity class
+* `operation()` — the `SnelloOperation` (`FETCH`, `LIST`, `CREATE`, `UPDATE`, `DELETE`)
+* `after()` — whether this is an after event
+* `entity()` — the entity, when available
+* `id()` — the entity id, when available
+* `results()` — the result list for after-list events

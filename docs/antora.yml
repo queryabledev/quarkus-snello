@@ -1,0 +1,5 @@
+name: quarkus-snello
+title: Quarkus Snello
+version: dev
+nav:
+  - modules/ROOT/nav.adoc

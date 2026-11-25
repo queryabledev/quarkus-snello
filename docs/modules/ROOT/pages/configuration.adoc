@@ -1,0 +1,41 @@
+= Configuration
+
+== Build-time configuration
+
+[cols="2,1,1,3"]
+|===
+|Property |Type |Default |Description
+
+|`quarkus.snello.base-path`
+|string
+|`/api`
+|Base path prepended to every generated resource path. The table name of each
+entity is appended to it, for example `/api/articles`.
+|===
+
+== Runtime configuration
+
+[cols="2,1,1,3"]
+|===
+|Property |Type |Default |Description
+
+|`quarkus.snello.default-limit`
+|int
+|`0`
+|Default maximum number of records returned by the collection endpoints when
+the `_limit` query parameter is absent. `0` means unlimited. An explicit
+`_limit` always overrides this value, including `_limit=0` to request an
+unlimited result.
+|===
+
+== Example
+
+[source,properties]
+----
+quarkus.snello.base-path=/rest
+quarkus.snello.default-limit=50
+----
+
+With this configuration an `Article` entity mapped to the `articles` table is
+exposed at `/rest/articles` and plain listings return at most 50 records (the
+`X-Total-Count` header still reports the full count).

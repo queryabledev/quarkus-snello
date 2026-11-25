@@ -1,0 +1,11 @@
+name: Snello
+description: Zero-annotation REST CRUD with suffix-based query filters for all JPA entities
+metadata:
+  keywords:
+    - snello
+    - panache
+    - rest
+    - filter
+  categories:
+    - "data"
+  status: "preview"

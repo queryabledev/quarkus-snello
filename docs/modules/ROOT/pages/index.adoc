@@ -1,0 +1,119 @@
+= Quarkus Snello
+
+Snello automatically exposes every JPA `@Entity` as a REST CRUD resource with a
+rich suffix-based filter language, without requiring any annotation on the
+entities.
+
+Standard CRUD, counting, OpenAPI and transactions remain owned by the official
+`quarkus-hibernate-orm-rest-data-panache` extension; snello contributes the
+collection `GET` endpoint and its query language.
+
+== Installation
+
+[source,xml,subs=attributes+]
+----
+<dependency>
+    <groupId>dev.queryable</groupId>
+    <artifactId>quarkus-snello</artifactId>
+    <version>{project-version}</version>
+</dependency>
+----
+
+The extension declares its required Quarkus runtime extensions. Applications
+still need to select a JDBC driver and a JSON provider, for example
+`quarkus-jdbc-postgresql` and `quarkus-rest-jackson`.
+
+== Minimal example
+
+[source,java]
+----
+@Entity
+@Table(name = "articles")
+public class Article {
+
+    @Id
+    @GeneratedValue
+    public Long id;
+
+    public String title;
+
+    public String status;
+
+    public BigDecimal price;
+
+    public LocalDate published_at;
+}
+----
+
+No further code is needed. The entity is exposed at `/api/articles`:
+
+* `GET /api/articles` — snello collection listing with filters, pagination,
+  sorting and projection
+* `GET /api/articles/count` — total count
+* `GET /api/articles/{id}` — fetch by id
+* `POST /api/articles` — create
+* `PUT /api/articles/{id}` — update
+* `DELETE /api/articles/{id}` — delete
+
+The path segment is the `@Table(name = ...)` value; without `@Table` it falls
+back to the lowercase entity simple name. The `/api` prefix is configurable, see
+xref:configuration.adoc[Configuration].
+
+Annotate an entity with `@SnelloExclude` to keep it out of the REST exposure:
+
+[source,java]
+----
+@Entity
+@SnelloExclude
+public class AuditLog {
+    // mapped by Hibernate, but no REST endpoints are generated
+}
+----
+
+== Filterable fields
+
+Every scalar persistent field is filterable: numbers, strings, booleans, dates
+and times, UUIDs and enums. Associations are not traversed; filter on the
+foreign key column instead. Values are automatically coerced to the field type
+before being bound, and the field whitelist derived from the JPA metamodel makes
+injection through parameter names impossible.
+
+Continue with xref:filters.adoc[Query parameters] for the complete filter
+language.
+
+== Collection responses
+
+Collection responses carry pagination metadata as headers:
+
+* `X-Total-Count` — total number of records matching the filters
+* `X-Start` — the applied offset
+* `X-Limit` — the applied limit (`0` means unlimited)
+
+== OpenAPI
+
+With `quarkus-smallrye-openapi` on the classpath, every generated collection
+endpoint documents its query parameters in a type-aware fashion: each scalar
+field is expanded with the filter suffixes that make sense for its type,
+together with a description of the operator.
+
+[cols="1,3"]
+|===
+|Field type |Documented parameters
+
+|any scalar
+|`field`, `field_ne`, `field_in`, `field_nn`, `field_inn`
+
+|`String`
+|adds `field_contains`, `field_like`, `field_ilike`, `field_containss`,
+`field_rlike`, `field_llike`, `field_ncontains`, `field_nie`, `field_ie`
+
+|numbers, dates, chars
+|adds `field_lt`, `field_lte`, `field_gt`, `field_gte`
+
+|booleans, enums, UUIDs
+|base set only
+|===
+
+The reserved parameters (`_start`, `_limit`, `_sort`, `select_fields`) are
+documented on every collection endpoint. OR-group parameters (`or{N}.`) are
+dynamic and are not listed individually.
