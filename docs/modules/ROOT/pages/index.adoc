@@ -29,9 +29,17 @@ collection `GET` endpoint and its query language.
 </dependency>
 ----
 
-The extension declares its required Quarkus runtime extensions. Applications
-still need to select a JDBC driver and a JSON provider, for example
-`quarkus-jdbc-postgresql` and `quarkus-rest-jackson`.
+The extension ships batteries included: `quarkus-rest-jackson` (JSON
+serialization) and `quarkus-jdbc-h2` are part of its dependencies, so a
+brand-new application works out of the box — in dev and test mode an in-memory
+H2 is started automatically by Quarkus Dev Services, with no datasource
+configuration at all.
+
+For production, point the default datasource at your database as usual. To use a
+different engine, add its driver (for example `quarkus-jdbc-postgresql`) and set
+`quarkus.datasource.db-kind`; the bundled H2 stays inert, or can be excluded
+from the `quarkus-snello` dependency (same for `quarkus-rest-jackson`, e.g. to
+use JSON-B instead).
 
 == Minimal example
 

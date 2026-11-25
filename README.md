@@ -49,8 +49,28 @@ Quarkus Snello contributes the collection `GET` endpoint and its query language.
 </dependency>
 ```
 
-Applications also select their JDBC driver and JSON extension, for example
-`quarkus-jdbc-postgresql` and `quarkus-rest-jackson`.
+Quarkus Snello ships **batteries included**: `quarkus-rest-jackson` (JSON
+serialization) and `quarkus-jdbc-h2` come with the extension, so a brand-new
+application works out of the box — in dev and test mode an in-memory H2 is started
+automatically by Quarkus Dev Services, with no datasource configuration at all.
+
+For production, point the default datasource at your database as usual. To use a
+different engine just add its driver and select it:
+
+```xml
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-jdbc-postgresql</artifactId>
+</dependency>
+```
+
+```properties
+quarkus.datasource.db-kind=postgresql
+```
+
+The bundled H2 stays inert when another db-kind is selected; exclude it from the
+`quarkus-snello` dependency if you want it off the classpath entirely (same for
+`quarkus-rest-jackson`, e.g. to use JSON-B instead).
 
 Full documentation lives in the [docs module](docs/modules/ROOT/pages/index.adoc).
 
