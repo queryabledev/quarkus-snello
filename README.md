@@ -45,7 +45,7 @@ Quarkus Snello contributes the collection `GET` endpoint and its query language.
 <dependency>
     <groupId>dev.queryable</groupId>
     <artifactId>quarkus-snello</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
