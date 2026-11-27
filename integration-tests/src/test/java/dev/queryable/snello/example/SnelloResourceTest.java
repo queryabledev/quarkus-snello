@@ -24,6 +24,13 @@ class SnelloResourceTest {
     }
 
     @Test
+    void snelloPathOverridesTableName() {
+        given().get("/api/path-override").then().statusCode(200)
+                .body("$", hasSize(0));
+        given().get("/api/path_override_table").then().statusCode(404);
+    }
+
+    @Test
     void exposesEntitiesWithoutTableAnnotationAtLowercaseName() {
         given().auth().preemptive().basic("alice", "secret")
                 .get("/api/team").then().statusCode(200)

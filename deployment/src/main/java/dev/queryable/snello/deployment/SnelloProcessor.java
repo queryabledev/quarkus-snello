@@ -59,6 +59,7 @@ class SnelloProcessor {
 
     private static final DotName ENTITY = DotName.createSimple("jakarta.persistence.Entity");
     private static final DotName SNELLO_EXCLUDE = DotName.createSimple("dev.queryable.snello.runtime.SnelloExclude");
+    private static final DotName SNELLO_PATH = DotName.createSimple("dev.queryable.snello.runtime.SnelloPath");
     private static final DotName TABLE = DotName.createSimple("jakarta.persistence.Table");
     private static final DotName ID = DotName.createSimple("jakarta.persistence.Id");
     private static final DotName TRANSIENT = DotName.createSimple("jakarta.persistence.Transient");
@@ -131,7 +132,7 @@ class SnelloProcessor {
                 LOG.warnf("Skipping entity %s: no @Id field found", entityName);
                 continue;
             }
-            String path = basePath + "/" + tableName(entity);
+            String path = basePath + "/" + exposurePath(entity);
             String resourceName = entityName + "SnelloResource";
             String adapterName = entityName + "SnelloAdapter";
 
@@ -160,7 +161,18 @@ class SnelloProcessor {
         return "/".equals(path) ? "" : path;
     }
 
-    private String tableName(ClassInfo entity) {
+    private String exposurePath(ClassInfo entity) {
+        AnnotationInstance snelloPath = entity.declaredAnnotation(SNELLO_PATH);
+        if (snelloPath != null) {
+            AnnotationValue value = snelloPath.value();
+            if (value != null && !value.asString().isBlank()) {
+                String path = normalizeEntityPath(value.asString());
+                if (!path.isBlank()) {
+                    return path;
+                }
+            }
+        }
+
         AnnotationInstance table = entity.declaredAnnotation(TABLE);
         if (table != null) {
             AnnotationValue name = table.value("name");
@@ -169,6 +181,17 @@ class SnelloProcessor {
             }
         }
         return entity.simpleName().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeEntityPath(String path) {
+        String normalized = path.trim();
+        while (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        return normalized;
     }
 
     private String idType(IndexView index, ClassInfo entity) {

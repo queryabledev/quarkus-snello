@@ -114,7 +114,7 @@ public class Article {
 → `GET/POST /api/articles`, `GET/PUT/DELETE /api/articles/{id}`, `GET /api/articles/count`.
 
 - The path segment is the `@Table(name = ...)` value; without `@Table` it falls back to the
-  lowercase entity name.
+  lowercase entity name. Use `@SnelloPath("custom-path")` to override both.
 - Annotate an entity with `@SnelloExclude` to keep it out of the REST exposure.
 - The base path is configurable with `quarkus.snello.base-path` (default `/api`);
   setting it to `/` exposes the entities directly at the root (`/articles`). The

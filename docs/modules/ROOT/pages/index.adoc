@@ -74,7 +74,8 @@ No further code is needed. The entity is exposed at `/api/articles`:
 * `DELETE /api/articles/{id}` — delete
 
 The path segment is the `@Table(name = ...)` value; without `@Table` it falls
-back to the lowercase entity simple name. The `/api` prefix is configurable, see
+back to the lowercase entity simple name. `@SnelloPath("custom-path")` overrides
+the path segment, including any `@Table` name. The `/api` prefix is configurable, see
 xref:configuration.adoc[Configuration].
 
 Annotate an entity with `@SnelloExclude` to keep it out of the REST exposure:
